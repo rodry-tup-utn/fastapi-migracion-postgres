@@ -2,7 +2,12 @@ from fastapi import APIRouter, Depends
 from app.modules.producto import service
 from sqlmodel import Session
 from app.core.database import get_session
-from app.modules.producto.schemas import ProductoCreate, ProductoUpdate, ProductoRead
+from app.modules.producto.schemas import (
+    ProductoCreate,
+    ProductoUpdate,
+    ProductoRead,
+    StockEstadoRead,
+)
 
 router = APIRouter(prefix="/productos", tags=["productos"])
 
@@ -38,3 +43,8 @@ def update_producto(
     producto_id: int, data: ProductoUpdate, session: Session = Depends(get_session)
 ):
     return service.update_producto(session, producto_id, data)
+
+
+@router.get("/estado-stock/{producto_id}", response_model=StockEstadoRead)
+def obtener_estado_stock(producto_id: int, session: Session = Depends(get_session)):
+    return service.obtener_estado_stock(session, producto_id)
