@@ -1,7 +1,9 @@
-from app.modules.producto.schemas import ProductoCreate, ProductoUpdate
+from app.modules.producto.schemas import ProductoCreate, ProductoUpdate, StockEstadoRead
 from app.modules.producto.model import Producto
 from sqlmodel import Session, select
 from sqlalchemy.orm import selectinload
+from app.modules.categoria.service import get_categoria
+from app.core.errors import NotFoundException
 
 
 def create_producto(session: Session, data: ProductoCreate):
@@ -36,7 +38,7 @@ def get_producto(
     producto = session.exec(query).first()
 
     if not producto:
-        raise LookupError(f"No se encontró producto con el id {producto_id}")
+        raise NotFoundException(f"No se encontró producto con el id {producto_id}")
 
     return producto
 
@@ -55,6 +57,8 @@ def delete_producto(session: Session, producto_id: int):
 def update_producto(session: Session, producto_id: int, data: ProductoUpdate):
     # solo se permite modificar productos activos
     producto = get_producto(session, producto_id)
+    if data.categoria_id is not None:
+        get_categoria(session, data.categoria_id)
 
     data_dict = data.model_dump(exclude_unset=True, exclude_none=True)
 
@@ -65,3 +69,12 @@ def update_producto(session: Session, producto_id: int, data: ProductoUpdate):
     session.refresh(producto)
 
     return producto
+
+
+def obtener_estado_stock(session: Session, producto_id: int) -> StockEstadoRead:
+    producto = get_producto(session, producto_id)
+    alerta_stock = producto.stock < producto.stock_minimo
+
+    return StockEstadoRead(
+        stock=producto.stock, bajo_stock_minimo=alerta_stock, activo=producto.activo
+    )
