@@ -35,3 +35,9 @@ class CategoriaBasicRead(SQLModel):
 
 class ProductoFullRead(ProductoRead):
     categoria: CategoriaBasicRead | None = None
+
+
+class StockEstadoRead(SQLModel):
+    stock: int
+    bajo_stock_minimo: bool
+    activo: bool
