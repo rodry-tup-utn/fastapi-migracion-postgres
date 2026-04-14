@@ -7,7 +7,8 @@ class MovimientoBase(SQLModel):
     tipo_movimiento: TIPO_MOVIMIENTO
     cantidad: int = Field(ge=1)
     descripcion: str | None = None
-    precio_aplicado: float | None = Field(ge=0)
+    precio_unitario: float | None = None
+    precio_total: float | None = None
 
 
 class MovimientoCreate(MovimientoBase):
@@ -24,7 +25,6 @@ class MovimientoRead(MovimientoBase):
 class ProductoBaseRead(SQLModel):
     id: int
     nombre: str
-    precio: float
 
 
 class MovimientoFullRead(MovimientoRead):
