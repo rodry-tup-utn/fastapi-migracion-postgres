@@ -83,7 +83,7 @@ def obtener_estado_stock(session: Session, producto_id: int) -> StockEstadoRead:
 def update_stock(session: Session, producto_id, cantidad: int):
     producto = get_producto(session, producto_id)
 
-    stock_final = producto.stock - cantidad
+    stock_final = producto.stock + cantidad
 
     if stock_final < 0:
         raise ValueError(
