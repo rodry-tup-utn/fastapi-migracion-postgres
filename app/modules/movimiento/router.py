@@ -14,7 +14,7 @@ def create_movimiento(
     return service.create_movimiento(session, data)
 
 
-@router.get("/", response_model=schemas.MovimientoRead)
+@router.get("/", response_model=list[schemas.MovimientoRead])
 def get_all(session: Session = Depends(get_session), incluir_inactivos: bool = False):
     return service.get_all(session, incluir_inactivos)
 
