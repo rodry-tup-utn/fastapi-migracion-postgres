@@ -3,6 +3,7 @@ from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from app.modules.categoria.model import Categoria
+    from app.modules.movimiento.model import Movimiento
 
 
 class Producto(SQLModel, table=True):
@@ -15,3 +16,4 @@ class Producto(SQLModel, table=True):
     activo: bool = True
 
     categoria: "Categoria" = Relationship(back_populates="productos")
+    movimientos: "Movimiento" = Relationship(back_populates="productos")
