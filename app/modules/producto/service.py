@@ -78,3 +78,20 @@ def obtener_estado_stock(session: Session, producto_id: int) -> StockEstadoRead:
     return StockEstadoRead(
         stock=producto.stock, bajo_stock_minimo=alerta_stock, activo=producto.activo
     )
+
+
+def update_stock(session: Session, producto_id, cantidad: int):
+    producto = get_producto(session, producto_id)
+
+    stock_final = producto.stock - cantidad
+
+    if stock_final < 0:
+        raise ValueError(
+            f"Cantidad insuficiente de {producto.nombre} para realizar la operacion"
+        )
+
+    producto.stock = stock_final
+
+    session.add(producto)
+
+    return producto
