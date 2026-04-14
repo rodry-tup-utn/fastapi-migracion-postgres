@@ -16,4 +16,4 @@ class Producto(SQLModel, table=True):
     activo: bool = True
 
     categoria: "Categoria" = Relationship(back_populates="productos")
-    movimientos: "Movimiento" = Relationship(back_populates="productos")
+    movimientos: "Movimiento" = Relationship(back_populates="producto")
