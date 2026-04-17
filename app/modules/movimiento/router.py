@@ -19,6 +19,11 @@ def get_all(session: Session = Depends(get_session), incluir_inactivos: bool = F
     return service.get_all(session, incluir_inactivos)
 
 
+@router.get("/stats", response_model=schemas.DashboardStats)
+def get_stats(session: Session = Depends(get_session)):
+    return service.get_dashboard_stats(session)
+
+
 @router.get("/{movimiento_id}", response_model=schemas.MovimientoFullRead)
 def get_by_id(
     movimiento_id: int,
