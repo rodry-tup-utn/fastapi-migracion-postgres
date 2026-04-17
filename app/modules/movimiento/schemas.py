@@ -29,3 +29,13 @@ class ProductoBaseRead(SQLModel):
 
 class MovimientoFullRead(MovimientoRead):
     producto: ProductoBaseRead
+
+
+class DashboardStats(SQLModel):
+    total_compras_count: int
+    total_ventas_count: int
+    monto_total_ventas: float
+    monto_total_compras: float
+    balance_caja: float
+    varidad_productos: int
+    stock_total_actual: int
