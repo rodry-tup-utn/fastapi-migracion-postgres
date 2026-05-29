@@ -1,13 +1,9 @@
 from sqlmodel import SQLModel
 
 
-class CategoriaBase(SQLModel):
+class CategoriaCreate(SQLModel):
     nombre: str
     descripcion: str | None = None
-
-
-class CategoriaCreate(CategoriaBase):
-    pass
 
 
 class CategoriaUpdate(SQLModel):
@@ -24,12 +20,12 @@ class ProductoBasicRead(SQLModel):
     stock_minimo: int
 
 
-class CategoriaFullRead(CategoriaBase):
+class CategoriaRead(SQLModel):
+    nombre: str
+    descripcion: str | None = None
     id: int
     activo: bool
+
+
+class CategoriaFullRead(CategoriaRead):
     productos: list[ProductoBasicRead] = []
-
-
-class CategoriaBaseRead(CategoriaBase):
-    id: int
-    activo: bool

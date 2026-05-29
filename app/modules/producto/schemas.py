@@ -1,14 +1,11 @@
 from sqlmodel import SQLModel, Field
 
 
-class ProductoBase(SQLModel):
+class ProductoCreate(SQLModel):
     nombre: str
     precio: float = Field(gt=0)
     stock: int = Field(default=0, ge=0)
     stock_minimo: int = Field(default=0, ge=0)
-
-
-class ProductoCreate(ProductoBase):
     categoria_id: int
 
 
@@ -21,7 +18,11 @@ class ProductoUpdate(SQLModel):
     activo: bool | None = None
 
 
-class ProductoRead(ProductoBase):
+class ProductoRead(SQLModel):
+    nombre: str
+    precio: float = Field(gt=0)
+    stock: int = Field(default=0, ge=0)
+    stock_minimo: int = Field(default=0, ge=0)
     id: int
     categoria_id: int
     activo: bool
