@@ -1,76 +1,53 @@
-from sqlmodel import Session, select
-from app.modules.categoria.schemas import (
-    CategoriaCreate,
-    CategoriaUpdate,
-)
+from sqlmodel import Session
+from app.modules.categoria.schemas import CategoriaCreate, CategoriaUpdate
 from app.modules.categoria.model import Categoria
+from app.modules.categoria.repository import CategoriaRepository
 from app.core.errors import NotFoundException
+from fastapi import HTTPException, status
 
 
-def create_categoria(session: Session, data: CategoriaCreate):
-    categoria = Categoria.model_validate(data)
+class CategoriaService:
+    def __init__(self, session: Session):
+        self.repo = CategoriaRepository(session)
 
-    session.add(categoria)
-    session.commit()
-    session.refresh(categoria)
+    def _get_or_404(self, categoria_id: int, incluir_inactivos: bool = False):
+        categoria = self.repo.get_by_id(categoria_id, incluir_inactivos)
+        if not categoria:
+            raise NotFoundException(
+                f"No se encontro una categoria con el id {categoria_id}"
+            )
+        return categoria
 
-    return categoria
+    def create(self, data: CategoriaCreate) -> Categoria:
+        categoria = Categoria.model_validate(data)
+        return self.repo.create(categoria)
 
+    def get_all(self, incluir_inactivos: bool = False) -> list[Categoria]:
+        return self.repo.get_all(incluir_inactivos)
 
-def get_categorias(session: Session, incluir_inactivos: bool = False):
-    query = select(Categoria)
+    def get_by_id(
+        self, categoria_id: int, incluir_inactivos: bool = False
+    ) -> Categoria:
+        categoria = self._get_or_404(categoria_id, incluir_inactivos)
 
-    if not incluir_inactivos:
-        query = query.where(Categoria.activo)
+        return categoria
 
-    return session.exec(query).all()
+    def update(self, categoria_id: int, data: CategoriaUpdate) -> Categoria:
+        categoria = self._get_or_404(categoria_id)
 
+        data_dict = data.model_dump(exclude_unset=True, exclude_none=True)
+        for key, value in data_dict.items():
+            setattr(categoria, key, value)
 
-def get_categoria(session: Session, categoria_id: int, incluir_inactivos: bool = False):
-    query = select(Categoria).where(Categoria.id == categoria_id)
+        return self.repo.save(categoria)
 
-    if not incluir_inactivos:
-        query = query.where(Categoria.activo)
+    def delete(self, categoria_id: int) -> Categoria:
+        categoria = self._get_or_404(categoria_id, True)
 
-    categoria = session.exec(query).first()
+        if categoria.activo == False:
+            raise HTTPException(
+                status.HTTP_400_BAD_REQUEST, "La categoria ya se encuentra eliminada"
+            )
 
-    if not categoria:
-        raise NotFoundException(
-            f"No se encontro una categoria con el id {categoria_id}"
-        )
-
-    return categoria
-
-
-def eliminar_categoria(session: Session, categoria_id: int):
-    categoria = get_categoria(session, categoria_id)
-
-    categoria.activo = False
-
-    session.add(categoria)
-    session.commit()
-    session.refresh(categoria)
-    return categoria
-
-
-def update_categoria(session: Session, categoria_id: int, data: CategoriaUpdate):
-    categoria = get_categoria(session, categoria_id)
-
-    data_dict = data.model_dump(exclude_unset=True, exclude_none=True)
-
-    for key, value in data_dict.items():
-        setattr(categoria, key, value)
-
-    session.commit()
-    session.refresh(categoria)
-
-    return categoria
-
-
-def delete_categoria(session: Session, categoria_id: int):
-    categoria = get_categoria(session, categoria_id)
-    categoria.activo = False
-    session.commit()
-    session.refresh(categoria)
-
-    return categoria
+        categoria.activo = False
+        return self.repo.save(categoria)
