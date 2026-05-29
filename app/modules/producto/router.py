@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends
-from app.modules.producto import service
+from app.modules.producto.service import ProductoService
 from sqlmodel import Session
 from app.core.database import get_session
 from app.modules.producto.schemas import (
@@ -12,39 +12,51 @@ from app.modules.producto.schemas import (
 router = APIRouter(prefix="/productos", tags=["productos"])
 
 
+def get_product_service(session: Session = Depends(get_session)) -> ProductoService:
+    return ProductoService(session)
+
+
 @router.post("/", response_model=ProductoRead)
-def create_producto(data: ProductoCreate, session: Session = Depends(get_session)):
-    return service.create_producto(session, data)
+def create_producto(
+    data: ProductoCreate, svc: ProductoService = Depends(get_product_service)
+):
+    return svc.create(data)
 
 
 @router.get("/", response_model=list[ProductoRead])
 def get_productos(
-    session: Session = Depends(get_session), incluir_inactivos: bool = False
+    incluir_inactivos: bool = False, svc: ProductoService = Depends(get_product_service)
 ):
-    return service.get_productos(session, incluir_inactivos)
+    return svc.get_all(incluir_inactivos)
 
 
 @router.get("/{producto_id}", response_model=ProductoRead)
 def get_producto_id(
     producto_id: int,
-    session: Session = Depends(get_session),
     incluir_inactivos: bool = False,
+    svc: ProductoService = Depends(get_product_service),
 ):
-    return service.get_producto(session, producto_id, incluir_inactivos)
+    return svc.get_by_id(producto_id, incluir_inactivos)
 
 
-@router.delete("/{iproducto_id}")
-def delete_producto(producto_id: int, session: Session = Depends(get_session)):
-    return service.delete_producto(session, producto_id)
+@router.delete("/{producto_id}", response_model=ProductoRead)
+def delete_producto(
+    producto_id: int, svc: ProductoService = Depends(get_product_service)
+):
+    return svc.delete(producto_id)
 
 
-@router.patch("/{producto_id}")
+@router.patch("/{producto_id}", response_model=ProductoRead)
 def update_producto(
-    producto_id: int, data: ProductoUpdate, session: Session = Depends(get_session)
+    producto_id: int,
+    data: ProductoUpdate,
+    svc: ProductoService = Depends(get_product_service),
 ):
-    return service.update_producto(session, producto_id, data)
+    return svc.update(producto_id, data)
 
 
 @router.get("/estado-stock/{producto_id}", response_model=StockEstadoRead)
-def obtener_estado_stock(producto_id: int, session: Session = Depends(get_session)):
-    return service.obtener_estado_stock(session, producto_id)
+def obtener_estado_stock(
+    producto_id: int, svc: ProductoService = Depends(get_product_service)
+):
+    return svc.obtener_estado_stock(producto_id)

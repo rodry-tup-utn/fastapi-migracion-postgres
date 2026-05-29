@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends
-from app.modules.movimiento import service
+from app.modules.movimiento.service import MovimientoService
 from app.modules.movimiento import schemas
 from sqlmodel import Session
 from app.core.database import get_session
@@ -7,32 +7,42 @@ from app.core.database import get_session
 router = APIRouter(prefix="/movimientos", tags=["movimientos"])
 
 
+def get_movimiento_service(session: Session = Depends(get_session)) -> MovimientoService:
+    return MovimientoService(session)
+
+
 @router.post("/", response_model=schemas.MovimientoFullRead)
 def create_movimiento(
-    data: schemas.MovimientoCreate, session: Session = Depends(get_session)
+    data: schemas.MovimientoCreate,
+    svc: MovimientoService = Depends(get_movimiento_service),
 ):
-    return service.create_movimiento(session, data)
+    return svc.create(data)
 
 
 @router.get("/", response_model=list[schemas.MovimientoRead])
-def get_all(session: Session = Depends(get_session), incluir_inactivos: bool = False):
-    return service.get_all(session, incluir_inactivos)
+def get_movimientos(
+    incluir_inactivos: bool = False,
+    svc: MovimientoService = Depends(get_movimiento_service),
+):
+    return svc.get_all(incluir_inactivos)
 
 
 @router.get("/stats", response_model=schemas.DashboardStats)
-def get_stats(session: Session = Depends(get_session)):
-    return service.get_dashboard_stats(session)
+def get_movimiento_stats(svc: MovimientoService = Depends(get_movimiento_service)):
+    return svc.get_dashboard_stats()
 
 
 @router.get("/{movimiento_id}", response_model=schemas.MovimientoFullRead)
-def get_by_id(
+def get_movimiento(
     movimiento_id: int,
-    session: Session = Depends(get_session),
     incluir_inactivos: bool = False,
+    svc: MovimientoService = Depends(get_movimiento_service),
 ):
-    return service.get_by_id(session, movimiento_id, incluir_inactivos)
+    return svc.get_by_id(movimiento_id, incluir_inactivos)
 
 
 @router.delete("/{movimiento_id}", response_model=schemas.MovimientoRead)
-def delete(movimiento_id: int, session: Session = Depends(get_session)):
-    return service.delete(session, movimiento_id)
+def delete_movimiento(
+    movimiento_id: int, svc: MovimientoService = Depends(get_movimiento_service)
+):
+    return svc.delete(movimiento_id)

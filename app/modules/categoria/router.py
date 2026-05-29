@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends
-from app.modules.categoria import service
+from app.modules.categoria.service import CategoriaService
 from app.modules.categoria import schemas
 from app.core.database import get_session
 from sqlmodel import Session
@@ -7,36 +7,43 @@ from sqlmodel import Session
 router = APIRouter(prefix="/categorias", tags=["categorias"])
 
 
-@router.get("/", response_model=list[schemas.CategoriaBaseRead])
-def get_all(session: Session = Depends(get_session), incluir_inactivos: bool = False):
+def get_category_service(session: Session = Depends(get_session)) -> CategoriaService:
+    return CategoriaService(session)
 
-    return service.get_categorias(session)
+
+@router.get("/", response_model=list[schemas.CategoriaBaseRead])
+def get_all(
+    incluir_inactivos: bool = False,
+    svc: CategoriaService = Depends(get_category_service),
+):
+    return svc.get_all(incluir_inactivos)
 
 
 @router.get("/{id}", response_model=schemas.CategoriaFullRead)
 def get_categoria(
     id: int,
     incluir_inactivos: bool = False,
-    session: Session = Depends(get_session),
+    svc: CategoriaService = Depends(get_category_service),
 ):
-
-    return service.get_categoria(session, id)
+    return svc.get_by_id(id, incluir_inactivos)
 
 
 @router.post("/", response_model=schemas.CategoriaBaseRead)
 def create_categoria(
-    data: schemas.CategoriaCreate, session: Session = Depends(get_session)
+    data: schemas.CategoriaCreate, svc: CategoriaService = Depends(get_category_service)
 ):
-    return service.create_categoria(session, data)
+    return svc.create(data)
 
 
 @router.patch("/{id}", response_model=schemas.CategoriaFullRead)
 def update_categoria(
-    id: int, data: schemas.CategoriaUpdate, session: Session = Depends(get_session)
+    id: int,
+    data: schemas.CategoriaUpdate,
+    svc: CategoriaService = Depends(get_category_service),
 ):
-    return service.update_categoria(session, id, data)
+    return svc.update(id, data)
 
 
 @router.delete("/{id}")
-def delete_categoria(id: int, session: Session = Depends(get_session)):
-    return service.delete_categoria(session, id)
+def delete_categoria(id: int, svc: CategoriaService = Depends(get_category_service)):
+    return svc.delete(id)
