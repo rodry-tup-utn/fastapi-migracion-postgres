@@ -3,19 +3,19 @@ from app.modules.movimiento.model import TIPO_MOVIMIENTO
 from datetime import datetime
 
 
-class MovimientoBase(SQLModel):
+class MovimientoCreate(SQLModel):
     tipo_movimiento: TIPO_MOVIMIENTO
     cantidad: int = Field(ge=1)
     descripcion: str | None = None
     precio_unitario: float | None = None
-    precio_total: float | None = None
-
-
-class MovimientoCreate(MovimientoBase):
     producto_id: int
 
 
-class MovimientoRead(MovimientoBase):
+class MovimientoRead(SQLModel):
+    tipo_movimiento: TIPO_MOVIMIENTO
+    cantidad: int = Field(ge=1)
+    descripcion: str | None = None
+    precio_unitario: float | None = None
     id: int
     fecha: datetime
     producto_id: int
